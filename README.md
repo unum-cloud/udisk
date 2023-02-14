@@ -6,7 +6,7 @@ The fastest ACID-transactional persisted Key-Value store designed for NVMe block
 
 Most important parameters:
 
-- `directory_main`: Where to keep the configs, schemas, data, and logs? The boot drive?
+- `directory`: Where to keep the configs, schemas, data, and logs? The boot drive?
 - `memory_limit`: How much RAM to use? 80% of it?
 - `value_max_size`: How large the values can get?
 
@@ -18,8 +18,7 @@ Tuning performance?
 ### Versioning
 
 ```json
-"udisk_version": 0.3.0
-"options_file_version": 0.7
+"version": 1
 ```
 
 ### Disk IO
@@ -89,22 +88,24 @@ Limit the maximum combined size of entries to be collected in-memory (and in the
 
 ### Hardware Acceleration
 
-Background threads to be used for compactions and non-blocking garbage collection:
+Threads to be used for compactions, non-blocking garbage collection, and polling mechanisms.
+For optimal performance with high-end NVMe SSDs we suggest reserving 2 or 3 threads per SSD.
 
 ```json
-"background_threads": 1
+"threads": 1
 ```
 
 Define, how many threads may be accessing the database concurrently:
 
 ```json
-"max_access_threads": 64
+"concurrency_limit": 64
 ```
 
 Optional array of integer identifiers for the GPUs to be used for background compactions:
 
 ```json
 "gpu_devices": "all"
+"gpu_devices": [-1]
 "gpu_devices": [0, 1, 2, 3]
 ```
 
@@ -153,3 +154,41 @@ The maximum capacity of a single transaction, limiting the size of all updates i
 ```json
 "transaction_max_bytes": 100000000
 ```
+
+---
+
+### Full Example
+
+```json
+{
+    "version": 1,
+    "threads": 1,
+    "memory_limit": 100000000000,
+    "gpu_devices": [-1],
+    "gpu_memory_limit": 1000000000,
+    "directory": "./tmp/",
+    "data_directories": [
+        {
+            "path": "/mnt/disk1/",
+            "max_size": 100000000000
+        },
+        {
+            "path": "/mnt/disk2/",
+            "max_size": 100000000000
+        }
+    ],
+    "io_mechanism": "pulling",
+    "io_queue_depth": 4096,
+    "transaction_max_elements": 1000,
+    "transaction_max_bytes": 13421773,
+    "concurrency_limit": 128,
+    "cache_limit": 134217728,
+    "write_buffer_max_elements": 100000,
+    "write_buffer_max_bytes": 134217728,
+    "first_level_max_bytes": 4831838208,
+    "level_enlarge_factor": 4,
+    "value_size": 0,
+    "value_max_size": 4194304
+}
+```
+
